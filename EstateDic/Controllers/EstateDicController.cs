@@ -11,12 +11,15 @@ namespace EstateDic.Controllers
 {
     public class EstateDicController : Controller
     {
+        EstateDicService us = new EstateDicService();
         // GET: EstateDic
         public ActionResult Index()
         {
             return View();
         }
 
+
+        //获取楼盘接口
         public ActionResult GetEstate(string data, string city)
         {
             EstateResult r = new EstateResult();
@@ -31,9 +34,40 @@ namespace EstateDic.Controllers
                 r.success = false;
             }
             else
-            {
-                EstateDicService us = new EstateDicService();
+            {                
                 r = us.PushEstateInfo(city, data);
+            }
+            return Content(r.ToJson());
+        }
+
+        //获取楼栋接口
+        public ActionResult GetBuilding(string data)
+        {
+            BuildingResult r = new BuildingResult();
+            if (string.IsNullOrEmpty(data))
+            {
+                r.info = "参数data不能为空!";
+                r.success = false;
+            }
+            else
+            {
+                r = us.PushBuildingInfo(data);
+            }
+            return Content(r.ToJson());
+        }
+
+        //获取房间接口
+        public ActionResult GetRoom(string data)
+        {
+            RoomResult r = new RoomResult();
+            if (string.IsNullOrEmpty(data))
+            {
+                r.info = "参数data不能为空!";
+                r.success = false;
+            }
+            else
+            {
+                r = us.PushRoomInfo(data);
             }
             return Content(r.ToJson());
         }
