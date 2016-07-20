@@ -46,7 +46,9 @@ namespace EstateDic.Controllers
                     //检测敏感字
                     if (SMSHelper.CheckSensitiveWords(allmsg, out msg))
                     {
-                        return string.IsNullOrEmpty(msg) ? Content("敏感字检测失败！") : Content(msg + "为敏感字!");
+                        re.success = false;
+                        re.info = (string.IsNullOrEmpty(msg) ? "敏感字检测失败！" : (msg + "为敏感字!"));
+                        return Content(re.ToJson());
                     }
                     re = se.SendSms(mobile, allmsg, sign);
                 }
