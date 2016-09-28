@@ -47,5 +47,22 @@ namespace EstateDic.Service
                 return result;
             }
         }
+
+        public bool CheckUserID(string userID)
+        {
+            try
+            {
+                string str = string.Format("select count(1) from tb_smssend_interface_userlist(nolock) where userid='{0}';", userID);
+                int i = (int)db.GetSingle(str);
+                if (i > 0)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
