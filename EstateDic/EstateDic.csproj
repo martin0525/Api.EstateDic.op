@@ -81,6 +81,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NLog">
+      <HintPath>..\dll\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="Swashbuckle.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cd1bb07a5ac7c7bc, processorArchitecture=MSIL">
       <HintPath>..\packages\Swashbuckle.Core.5.0.0\lib\net40\Swashbuckle.Core.dll</HintPath>
       <Private>True</Private>
@@ -250,8 +253,10 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\MsgController.cs" />
     <Compile Include="Helper\CommandInfo.cs" />
     <Compile Include="Controllers\EstateDicController.cs" />
+    <Compile Include="Helper\ConfigHelper.cs" />
     <Compile Include="Helper\DbHelperSQL.cs" />
     <Compile Include="Helper\DbHelperSQLP.cs" />
     <Compile Include="Helper\DESEncrypt.cs" />
@@ -264,6 +269,10 @@
     <Compile Include="Helper\PubConstant.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Service\EstateDicService.cs" />
+    <Compile Include="Service\SmsService.cs" />
+    <Compile Include="SMS\MessageSendManage.cs" />
+    <Compile Include="SMS\MessageSendModel.cs" />
+    <Compile Include="SMS\SMSHelper.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -328,6 +337,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\EstateDic\Index.cshtml" />
+    <Content Include="Views\Msg\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
