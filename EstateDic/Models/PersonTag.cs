@@ -5,6 +5,9 @@ using System.Web;
 
 namespace EstateDic.Models
 {
+    /// <summary>
+    /// 需求信息
+    /// </summary>
     public class DemandInfo
     {
         public String DemandCity { get; set; }
@@ -14,6 +17,9 @@ namespace EstateDic.Models
         public String DemandDate { get; set; }
     }
 
+    /// <summary>
+    /// 交易信息
+    /// </summary>
     public class TradeInfo
     {
         public String TradeCity { get; set; }
@@ -23,7 +29,9 @@ namespace EstateDic.Models
         public String TradeDate { get; set; }
     }
 
-
+    /// <summary>
+    /// 客户信息
+    /// </summary>
     public class PersonTag
     {
         public String Name { get; set; }
@@ -32,7 +40,13 @@ namespace EstateDic.Models
         public String RegisterCity { get; set; }
         public String Mobile { get; set; }
         public String IDNumber { get; set; }
+        /// <summary>
+        /// 职业,多值逗号分隔
+        /// </summary>
         public String Profession { get; set; }
+        /// <summary>
+        /// 爱好,多值逗号分隔
+        /// </summary>
         public String Interests { get; set; }
         public String Marriage { get; set; }
         public String FamilyIncome { get; set; }
@@ -40,5 +54,12 @@ namespace EstateDic.Models
         public String ChildrenStatus { get; set; }
         public List<TradeInfo> TradeInfos { get; set; }
         public List<DemandInfo> DemandInfos { get; set; }
+    }
+
+    public class CustomerInfoResponse
+    {
+        public String Result { get; set; }
+        public String Message { get; set; }
+        public PersonTag Data { get; set; }
     }
 }

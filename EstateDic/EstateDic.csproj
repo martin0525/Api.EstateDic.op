@@ -253,6 +253,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\CustomerInfoController.cs" />
     <Compile Include="Controllers\MsgController.cs" />
     <Compile Include="Helper\CommandInfo.cs" />
     <Compile Include="Controllers\EstateDicController.cs" />
@@ -263,6 +264,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helper\IDCardValidation.cs" />
     <Compile Include="Helper\JsonExtension.cs" />
     <Compile Include="Models\EstateDicModel.cs" />
     <Compile Include="Models\PersonTag.cs" />
@@ -339,6 +341,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\CustomerInfo\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
