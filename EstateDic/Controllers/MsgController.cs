@@ -54,7 +54,7 @@ namespace EstateDic.Controllers
                 re.info = "使用方ID无发送短信权限!";
                 return Content(re.ToJson());
             }
-            else if (key != md5key)
+            else if (key.ToLower() != md5key)
             {
                 re.success = false;
                 re.info = "安全KEY不正确!";
@@ -74,7 +74,7 @@ namespace EstateDic.Controllers
                         re.info = (string.IsNullOrEmpty(msg) ? "敏感字检测失败！" : (msg + "为敏感字!"));
                         return Content(re.ToJson());
                     }
-                    re = se.SendSms(mobile, allmsg, sign);
+                    re = se.SendSms(mobile, allmsg, sign, user);
                 }
                 catch (Exception ex)
                 {

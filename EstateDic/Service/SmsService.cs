@@ -9,7 +9,7 @@ namespace EstateDic.Service
         private string target = Helper.ConfigHelper.GetConfigString("SMSTarget");
         DbHelperSQLP db = new DbHelperSQLP(ConfigurationManager.AppSettings["ConnectionSms"]);
         MessageSendManage msService = new MessageSendManage();
-        public SMSSendResult SendSms(string mobile,string message,string sign)
+        public SMSSendResult SendSms(string mobile,string message,string sign,string user)
         {
             SMSSendResult result = new SMSSendResult();
             try
@@ -29,8 +29,8 @@ namespace EstateDic.Service
                     try
                     {
                         string str = string.Format("insert into dbo.SMSSendBase(Id,Phone,Message,State,CreateDate,CreateUserId,SenderMark,SendCount,SendState,UnitPrice,UpdateDate,TaskId,"
-                                + "ClientName,SmsTempletName,Templet_Id,Category,BatchId) values('{0}','{1}','{2}',1,getdate(),'{3}',{4},1,0,0.07,getdate(),'{3}','{5}','{5}','{3}','CFC','{0}');",
-                                    id, mobile, message, Guid.Empty, target, sign);
+                                + "ClientName,SmsTempletName,Templet_Id,Category,BatchId) values('{0}','{1}','{2}',1,getdate(),'{3}',{4},1,0,0.07,getdate(),'{3}','{5}','{6}','{3}','CFC','{0}');",
+                                    id, mobile, message, Guid.Empty, target, sign, user);
                         db.ExecuteSql(str);
                     }
                     catch (Exception ex)
