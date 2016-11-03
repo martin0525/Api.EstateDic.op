@@ -561,7 +561,7 @@ namespace EstateDic.Controllers
         /// <param name="IDNumber">客户身份证号</param>
         /// <param name="Sign">校验码</param>
         /// <returns>响应结果</returns>
-        public JsonResult GetTestJson(String UserID, String Mobile, String IDNumber, String Sign)
+        public JsonResult QueryCustomerInfo(String UserID, String Mobile, String IDNumber, String Sign)
         {
             CustomerInfoResponse JsonResponse = new CustomerInfoResponse();
 
