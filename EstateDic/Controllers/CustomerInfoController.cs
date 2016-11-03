@@ -522,7 +522,25 @@ namespace EstateDic.Controllers
                 DI.DemandProject = ResultSet.Tables[0].Rows[i]["project_name"].ToString();
                 DI.DemandPurpose = ResultSet.Tables[0].Rows[i]["buy_purpose"].ToString();
 
-                Tag.DemandInfos.Add(DI);
+                //查重
+                bool IsExisted = false;
+                for (int j = 0; j < Tag.DemandInfos.Count; j++)
+                {
+                    if (Tag.DemandInfos[j].DemandCity == DI.DemandCity &&
+                        Tag.DemandInfos[j].DemandDate == DI.DemandDate &&
+                        Tag.DemandInfos[j].DemandGrade == DI.DemandGrade &&
+                        Tag.DemandInfos[j].DemandProject == DI.DemandProject &&
+                        Tag.DemandInfos[j].DemandPurpose == DI.DemandPurpose)
+                    {
+                        IsExisted = true;
+                        break;
+                    }
+                }
+
+                if (!IsExisted)
+                {
+                    Tag.DemandInfos.Add(DI);
+                }
             }
 
             for (int i = 0; i < ResultSet.Tables[1].Rows.Count; i++)
@@ -547,7 +565,24 @@ namespace EstateDic.Controllers
                 TI.TradeProject = ResultSet.Tables[1].Rows[i]["trade_project_name"].ToString();
                 TI.TradePurpose = ResultSet.Tables[1].Rows[i]["trade_project_purpose"].ToString();
 
-                Tag.TradeInfos.Add(TI);
+                bool IsExisted = false;
+                for (int j = 0; j < Tag.TradeInfos.Count; j++)
+                {
+                    if (Tag.TradeInfos[j].TradeCity == TI.TradeCity &&
+                        Tag.TradeInfos[j].TradeDate == TI.TradeDate &&
+                        Tag.TradeInfos[j].TradeGrade == TI.TradeGrade &&
+                        Tag.TradeInfos[j].TradeProject == TI.TradeProject &&
+                        Tag.TradeInfos[j].TradePurpose == TI.TradePurpose)
+                    {
+                        IsExisted = true;
+                        break;
+                    }
+                }
+
+                if (!IsExisted)
+                {
+                    Tag.TradeInfos.Add(TI);
+                }
             }
 
             return 0;
@@ -564,8 +599,30 @@ namespace EstateDic.Controllers
         public JsonResult QueryCustomerInfo(String UserID, String Mobile, String IDNumber, String Sign)
         {
             CustomerInfoResponse JsonResponse = new CustomerInfoResponse();
+            if(Mobile == null)
+            {
+                Mobile = "";
+            }
+            if(IDNumber ==null)
+            {
+                IDNumber = "";
+            }
 
             //输入参数有效性检测
+            if (String.IsNullOrEmpty(UserID))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "UserID not provided.";
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            if (String.IsNullOrEmpty(Sign))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "Sign not provided.";
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+            
             if (String.IsNullOrEmpty(Mobile) && String.IsNullOrEmpty(IDNumber))
             {
                 JsonResponse.Result = "Failed";
@@ -709,7 +766,7 @@ namespace EstateDic.Controllers
 
             //输出结果
             JsonResponse.Data = Tag;
-            JsonResponse.Result = "Succeeded.";
+            JsonResponse.Result = "Succeeded";
             //本周期剩余查询次数
             JsonResponse.Message = (MaxQueryTimes - CurrentTimes - 1) + " queries available in this month.";
             JsonResult JR = Json(JsonResponse, JsonRequestBehavior.AllowGet);
