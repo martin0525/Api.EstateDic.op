@@ -764,6 +764,20 @@ namespace EstateDic.Controllers
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
+            //结果是否有有效数据 以存在五项属性和需求成交信息中的任意一项为有效标准
+            if(String.IsNullOrWhiteSpace(Tag.ChildrenStatus) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyIncome) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyStatus) &&
+                String.IsNullOrWhiteSpace(Tag.Interests) &&
+                String.IsNullOrWhiteSpace(Tag.Profession) &&
+                Tag.DemandInfos.Count == 0 &&
+                Tag.TradeInfos.Count == 0)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "No available records.";
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
             //输出结果
             JsonResponse.Data = Tag;
             JsonResponse.Result = "Succeeded";
