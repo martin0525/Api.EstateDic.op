@@ -511,10 +511,10 @@ namespace EstateDic.Controllers
                 }
 
                 //保护最近180天需求数据
-                if ((DateTime.Now - DemandTime).TotalDays <= 180)
-                {
-                    continue;
-                }
+                //if ((DateTime.Now - DemandTime).TotalDays <= 180)
+                //{
+                //    continue;
+                //}
 
                 DI.DemandDate = DemandTime.ToString("yyyy-MM-dd");
                 DI.DemandCity = ResultSet.Tables[0].Rows[i]["city"].ToString();
@@ -554,10 +554,10 @@ namespace EstateDic.Controllers
                 }
 
                 //保护最近720天成交数据
-                if ((DateTime.Now - TradeTime).TotalDays <= 720)
-                {
-                    continue;
-                }
+                //if ((DateTime.Now - TradeTime).TotalDays <= 720)
+                //{
+                //    continue;
+                //}
 
                 TI.TradeDate = TradeTime.ToString("yyyy-MM-dd");
                 TI.TradeCity = ResultSet.Tables[1].Rows[i]["trade_city"].ToString();
