@@ -511,10 +511,10 @@ namespace EstateDic.Controllers
                 }
 
                 //保护最近180天需求数据
-                if ((DateTime.Now - DemandTime).TotalDays <= 180)
-                {
-                    continue;
-                }
+                //if ((DateTime.Now - DemandTime).TotalDays <= 180)
+                //{
+                //    continue;
+                //}
 
                 DI.DemandDate = DemandTime.ToString("yyyy-MM-dd");
                 DI.DemandCity = ResultSet.Tables[0].Rows[i]["city"].ToString();
@@ -554,10 +554,10 @@ namespace EstateDic.Controllers
                 }
 
                 //保护最近720天成交数据
-                if ((DateTime.Now - TradeTime).TotalDays <= 720)
-                {
-                    continue;
-                }
+                //if ((DateTime.Now - TradeTime).TotalDays <= 720)
+                //{
+                //    continue;
+                //}
 
                 TI.TradeDate = TradeTime.ToString("yyyy-MM-dd");
                 TI.TradeCity = ResultSet.Tables[1].Rows[i]["trade_city"].ToString();
@@ -761,6 +761,20 @@ namespace EstateDic.Controllers
                 }
 
                 JsonResponse.Result = "Failed";
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //结果是否有有效数据 以存在五项属性和需求成交信息中的任意一项为有效标准
+            if(String.IsNullOrWhiteSpace(Tag.ChildrenStatus) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyIncome) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyStatus) &&
+                String.IsNullOrWhiteSpace(Tag.Interests) &&
+                String.IsNullOrWhiteSpace(Tag.Profession) &&
+                Tag.DemandInfos.Count == 0 &&
+                Tag.TradeInfos.Count == 0)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "No available records.";
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
