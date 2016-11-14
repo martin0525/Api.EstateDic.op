@@ -93,7 +93,7 @@ namespace EstateDic.Service
             try
             {
                 List<BuildingModel> list = new List<BuildingModel>();
-                string sql = string.Format(@"select * from TB_BUILDING(nolock) where STATUS=1 and ESTATE_GUID='{0}' order by BUILDING_NAME;", data);
+                string sql = string.Format(@"select * from TB_BUILDING(nolock) where STATUS=1 and ESTATE_GUID='{0}' order by BUILDING_NUMBER;", data);
 
                 using (SqlDataReader rd = db.ExecuteReader(sql))
                 {
@@ -101,13 +101,11 @@ namespace EstateDic.Service
                     {
                         BuildingModel mode = new BuildingModel();
                         mode.BUILDING_GUID = getRdString(rd, "BUILDING_GUID");
-                        mode.BUILDING_NAME = getRdString(rd, "BUILDING_NAME");
-                        mode.CONFORMATION = getRdString(rd, "CONFORMATION");
+                        mode.BUILDING_NUMBER = getRdString(rd, "BUILDING_NUMBER");
                         mode.ESTATE_GUID = getRdString(rd, "ESTATE_GUID");
-                        mode.DISPLAY_BUILDING_ADDRESS = getRdString(rd, "DISPLAY_BUILDING_ADDRESS");
+                        mode.BUILDING_ADDRESS = getRdString(rd, "BUILDING_ADDRESS");
                         mode.FLOOR_TOTAL = getRdString(rd, "FLOOR_TOTAL");
                         mode.ROOM_TOTAL = getRdString(rd, "ROOM_TOTAL");
-                        mode.ROOM_PER_FLOOR = getRdString(rd, "ROOM_PER_FLOOR");
                         list.Add(mode);
                     }                    
                     rd.Close();
