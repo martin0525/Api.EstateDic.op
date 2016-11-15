@@ -40,7 +40,7 @@ namespace EstateDic.Service
                                 PARKING_INFO,
                                 GREENING_RATE,
                                 PLOT_RATIO FROM TB_ESTATE(NOLOCK)
-                                WHERE (MULTI_NAMES LIKE '%{0}%' OR ESTATE_NAME_PY LIKE '%{0}%' OR MULTI_ADDRESSES LIKE '%{0}%')
+                                WHERE (MULTI_NAMES LIKE '%{0}%' OR ESTATE_NAME_PY LIKE '%{0}%' OR MULTI_ADDRESSES LIKE '%{0}%' OR ESTATE_NAME LIKE '%{0}%')
                                 AND CITY_NAME='{1}' AND STATUS=1;", data, city);
 
                 
