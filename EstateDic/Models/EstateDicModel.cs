@@ -71,19 +71,15 @@ namespace EstateDic.Models
         //楼栋ID
         public string BUILDING_GUID { get; set; }
         //楼栋名称
-        public string BUILDING_NAME { get; set; }
-        //建筑类型
-        public string CONFORMATION { get; set; }
+        public string BUILDING_NUMBER { get; set; }
         //楼盘ID
         public string ESTATE_GUID { get; set;}
         //楼栋地址
-        public string DISPLAY_BUILDING_ADDRESS { get; set; }
+        public string BUILDING_ADDRESS { get; set; }
         //总楼层
         public string FLOOR_TOTAL { get; set; }
         //总户数
         public string ROOM_TOTAL { get; set; }
-        //每层户数
-        public string ROOM_PER_FLOOR { get; set; }
     }
 
     //房间接口返回实体
