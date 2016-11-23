@@ -145,7 +145,7 @@ namespace EstateDic.Controllers
             /// </summary>
             CommaSeparatedValues
         }
-        
+
         /// <summary>
         /// 获取对应数据,以指定方式返回
         /// </summary>
@@ -269,7 +269,7 @@ namespace EstateDic.Controllers
             }
 
             //没有查到
-            if(ResultSet.Tables[0].Rows.Count == 0 &&
+            if (ResultSet.Tables[0].Rows.Count == 0 &&
                 ResultSet.Tables[1].Rows.Count == 0 &&
                 ResultSet.Tables[2].Rows.Count == 0 &&
                 ResultSet.Tables[3].Rows.Count == 0)
@@ -588,6 +588,35 @@ namespace EstateDic.Controllers
             return 0;
         }
 
+        private int RecordQueryFailedInfo(CustomerInfoResponse ErrResponse, int UserRecordID = -1,
+            String UserID = "", String InterfaceName = "")
+        {
+            JsonResult JR = Json(ErrResponse, JsonRequestBehavior.AllowGet);
+            String JRString = JR.Data.ToJsonString();
+
+            //记录查询历史
+            String Parameters = Request.Url.ToString().Substring(Request.Url.ToString().IndexOf('?') + 1);
+            try
+            {
+                new DbHelperSQLP(ConnStringCustomerInfo).ExecuteSql(
+                    "INSERT INTO [tb_interface_query_fail_log] ([UserRecordID],[UserID],[InterfaceName],[Parameters],[Response],[QueryTime]) " +
+                    "values (@UserRecordID, @UserID, @InterfaceName, @Parameters, @Response, GetDate())",
+                    new SqlParameter[] {
+                        new SqlParameter("@UserRecordID", UserRecordID),
+                        new SqlParameter("@UserID", UserID),
+                        new SqlParameter("@InterfaceName", InterfaceName),
+                        new SqlParameter("@Parameters", Parameters),
+                        new SqlParameter("@Response", JRString)
+                    });
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+
+            return 1;
+        }
+
         /// <summary>
         /// 查询客户信息
         /// </summary>
@@ -599,11 +628,14 @@ namespace EstateDic.Controllers
         public JsonResult QueryCustomerInfo(String UserID, String Mobile, String IDNumber, String Sign)
         {
             CustomerInfoResponse JsonResponse = new CustomerInfoResponse();
-            if(Mobile == null)
+            //检出接口名称
+            String InterfaceName = ConfigurationManager.AppSettings["LejuInterfaceName1"].ToString();
+
+            if (Mobile == null)
             {
                 Mobile = "";
             }
-            if(IDNumber ==null)
+            if (IDNumber == null)
             {
                 IDNumber = "";
             }
@@ -613,6 +645,7 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "UserID not provided.";
+                RecordQueryFailedInfo(JsonResponse, -1, "", InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -620,13 +653,15 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "Sign not provided.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
-            
+
             if (String.IsNullOrEmpty(Mobile) && String.IsNullOrEmpty(IDNumber))
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "At least one of [Mobile] or [IDNumber] should be provided.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -634,6 +669,7 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "The value of [IDNumber] is not valid.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -642,11 +678,10 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "The value of [Mobile] is not valid.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
-            //检出接口名称
-            String InterfaceName = ConfigurationManager.AppSettings["LejuInterfaceName1"].ToString();
 
             DataSet ResultSet = new DataSet();
             //用户key,一个GUID
@@ -672,6 +707,7 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "Validation Service failed.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -687,14 +723,16 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "Invalid user.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
             //用户过期检测
-            if(DateTime.Now>ExpiredTime)
+            if (DateTime.Now > ExpiredTime)
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "User account expired.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -719,6 +757,7 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "Query times exceeded.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
@@ -737,9 +776,10 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "Sign check failed.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
-            
+
             //组装客户信息
             PersonTag Tag = null;
             int AssembleResult = AssembleCustomerInfo(Mobile, IDNumber, out Tag);
@@ -761,11 +801,12 @@ namespace EstateDic.Controllers
                 }
 
                 JsonResponse.Result = "Failed";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
             //结果是否有有效数据 以存在五项属性和需求成交信息中的任意一项为有效标准
-            if(String.IsNullOrWhiteSpace(Tag.ChildrenStatus) &&
+            if (String.IsNullOrWhiteSpace(Tag.ChildrenStatus) &&
                 String.IsNullOrWhiteSpace(Tag.FamilyIncome) &&
                 String.IsNullOrWhiteSpace(Tag.FamilyStatus) &&
                 String.IsNullOrWhiteSpace(Tag.Interests) &&
@@ -775,6 +816,7 @@ namespace EstateDic.Controllers
             {
                 JsonResponse.Result = "Failed";
                 JsonResponse.Message = "No available records.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
                 return Json(JsonResponse, JsonRequestBehavior.AllowGet);
             }
 
