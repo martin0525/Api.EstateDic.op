@@ -849,5 +849,203 @@ namespace EstateDic.Controllers
 
             return JR;
         }
+
+        public JsonResult QueryCustomerDemo(String UserID, String Mobile, String IDNumber)
+        {
+            CustomerInfoResponse JsonResponse = new CustomerInfoResponse();
+            //检出接口名称
+            String InterfaceName = ConfigurationManager.AppSettings["LejuInterfaceName1"].ToString();
+
+            if (Mobile == null)
+            {
+                Mobile = "";
+            }
+            if (IDNumber == null)
+            {
+                IDNumber = "";
+            }
+
+            //输入参数有效性检测
+            if (String.IsNullOrEmpty(UserID))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "UserID not provided.";
+                RecordQueryFailedInfo(JsonResponse, -1, "", InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            if (String.IsNullOrEmpty(Mobile) && String.IsNullOrEmpty(IDNumber))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "At least one of [Mobile] or [IDNumber] should be provided.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            if (!String.IsNullOrEmpty(IDNumber) && !IDCardValidation.CheckIDCard(IDNumber))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "The value of [IDNumber] is not valid.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            if (!String.IsNullOrEmpty(Mobile) &&
+                (Mobile.Length != 11 || Mobile[0] != '1'))
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "The value of [Mobile] is not valid.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+
+            DataSet ResultSet = new DataSet();
+            //用户key,一个GUID
+            String UserKey = "";
+            //每周期(月)最大查询次数
+            int MaxQueryTimes = 0;
+            //用户帐号过期时间
+            DateTime ExpiredTime;
+            //用户记录ID
+            int UserRecordID = 0;
+            //本周期已经查询次数
+            int CurrentTimes = 0;
+
+            //获取用户信息记录
+            try
+            {
+                ResultSet = new DbHelperSQLP(ConnStringCustomerInfo).Query(
+                    "select [ID],[UserKey],[ExpiredTime],[MaxQueryTimes] from tb_interface_user " +
+                    "where InterfaceName = @InterfaceName and UserID = @UserID and Status = 1 ",
+                    new SqlParameter[] { new SqlParameter("@InterfaceName", InterfaceName), new SqlParameter("@UserID", UserID) });
+            }
+            catch (Exception)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "Validation Service failed.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //解析用户信息
+            try
+            {
+                UserKey = ResultSet.Tables[0].Rows[0]["UserKey"].ToString();
+                MaxQueryTimes = (int)ResultSet.Tables[0].Rows[0]["MaxQueryTimes"];
+                ExpiredTime = (DateTime)ResultSet.Tables[0].Rows[0]["ExpiredTime"];
+                UserRecordID = (int)ResultSet.Tables[0].Rows[0]["ID"];
+            }
+            catch (Exception)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "Invalid user.";
+                RecordQueryFailedInfo(JsonResponse, -1, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //用户过期检测
+            if (DateTime.Now > ExpiredTime)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "User account expired.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //获取查询历史信息
+            try
+            {
+                //获取本月访问次数
+                CurrentTimes = (int)(new DbHelperSQLP(ConnStringCustomerInfo).GetSingle(
+                    "select count(1) from tb_interface_query_log where [UserRecordID] = @UserRecordID " +
+                    "and QueryTime > DATENAME(YEAR,GETDATE())+'-'+DATENAME(MONTH,GETDATE())+'-01'",
+                    new SqlParameter[] { new SqlParameter("@UserRecordID", UserRecordID) }));
+
+            }
+            catch (Exception)
+            {
+                //次数查询失败时认为查询可用
+                CurrentTimes = 0;
+            }
+
+            //本周期查询次数检测
+            if (CurrentTimes >= MaxQueryTimes)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "Query times exceeded.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //组装客户信息
+            PersonTag Tag = null;
+            int AssembleResult = AssembleCustomerInfo(Mobile, IDNumber, out Tag);
+            if (AssembleResult != 0)
+            {
+                if (AssembleResult == -1)
+                {
+                    JsonResponse.Message = "DB service failed.";
+                }
+
+                if (AssembleResult == -2)
+                {
+                    JsonResponse.Message = "The value of [Mobile] and [IDNumber] don't match.";
+                }
+
+                if (AssembleResult == -3)
+                {
+                    JsonResponse.Message = "No relative records.";
+                }
+
+                JsonResponse.Result = "Failed";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //结果是否有有效数据 以存在五项属性和需求成交信息中的任意一项为有效标准
+            if (String.IsNullOrWhiteSpace(Tag.ChildrenStatus) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyIncome) &&
+                String.IsNullOrWhiteSpace(Tag.FamilyStatus) &&
+                String.IsNullOrWhiteSpace(Tag.Interests) &&
+                String.IsNullOrWhiteSpace(Tag.Profession) &&
+                Tag.DemandInfos.Count == 0 &&
+                Tag.TradeInfos.Count == 0)
+            {
+                JsonResponse.Result = "Failed";
+                JsonResponse.Message = "No available records.";
+                RecordQueryFailedInfo(JsonResponse, UserRecordID, UserID, InterfaceName);
+                return Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            }
+
+            //输出结果
+            JsonResponse.Data = Tag;
+            JsonResponse.Result = "Succeeded";
+            //本周期剩余查询次数
+            JsonResponse.Message = (MaxQueryTimes - CurrentTimes - 1) + " queries available in this month.";
+            JsonResult JR = Json(JsonResponse, JsonRequestBehavior.AllowGet);
+            String JRString = JR.Data.ToJsonString();
+
+            //记录查询历史
+            String Parameters = Request.Url.ToString().Substring(Request.Url.ToString().IndexOf('?') + 1);
+            try
+            {
+                new DbHelperSQLP(ConnStringCustomerInfo).ExecuteSql(
+                    "INSERT INTO [tb_interface_query_log] ([UserRecordID],[UserID],[InterfaceName],[Parameters],[Response],[QueryTime]) " +
+                    "values (@UserRecordID, @UserID, @InterfaceName, @Parameters, @Response, GetDate())",
+                    new SqlParameter[] {
+                        new SqlParameter("@UserRecordID", UserRecordID),
+                        new SqlParameter("@UserID", UserID),
+                        new SqlParameter("@InterfaceName", InterfaceName),
+                        new SqlParameter("@Parameters", Parameters),
+                        new SqlParameter("@Response", JRString)
+                    });
+            }
+            catch (Exception)
+            {
+            }
+
+            return JR;
+        }
     }
 }
